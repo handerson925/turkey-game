@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Find the Turkey! — Phonics Smartboard Game</title>
+  <!-- Kid-friendly, high-legibility classroom fonts (Quicksand & Fredoka use single-story primary 'a' and 'g') -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&family=Quicksand:wght@700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --font-display: 'Fredoka', 'Quicksand', sans-serif;
+      --font-primary-letter: 'Quicksand', 'Fredoka', sans-serif;
+      --font-body: 'Nunito', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: var(--font-body);
+      background-color: #1e293b;
+      overflow-x: hidden;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Smartboard Outer Frame */
+    .smartboard-bezel {
+      width: 100%;
+      max-width: 1320px;
+      background: linear-gradient(145deg, #2b303a, #181b20);
+      border-radius: 22px;
+      padding: 14px 14px 24px 14px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+      position: relative;
+    }
+
+    /* Smartboard Marker Tray */
+    .marker-tray {
+      width: 48%;
+      min-width: 240px;
+      height: 14px;
+      background: linear-gradient(180deg, #374151, #111827);
+      margin: 8px auto -16px auto;
+      border-radius: 0 0 12px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+    }
+
+    .marker-pen {
+      width: 34px;
+      height: 5px;
+      border-radius: 99px;
+    }
+
+    /* Harvest Field Backdrop inside Smartboard */
+    .harvest-board {
+      position: relative;
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 4px solid #f8fafc;
+      background: linear-gradient(
+        180deg,
+        #fdf6e3 0%,
+        #fae8c8 14%,
+        #a3b18a 15%,
+        #d4a373 22%,
+        #e9c46a 45%,
+        #d9a05b 75%,
+        #8a9a5b 100%
+      );
+      box-shadow: inset 0 0 40px rgba(101, 67, 33, 0.25);
+    }
+
+    /* Subtle meadow texture lines */
+    .meadow-texture {
+      position: absolute;
+      inset: 0;
+      background-image:
+        repeating-linear-gradient(
+          90deg,
+          rgba(255, 255, 255, 0.08) 0px,
+          rgba(255, 255, 255, 0.08) 2px,
+          transparent 2px,
+          transparent 18px
+        ),
+        radial-gradient(ellipse at 50% 35%, rgba(255, 250, 224, 0.45), transparent 70%);
+      pointer-events: none;
+    }
+
+    /* Header Banner matching reference image */
+    .header-banner {
+      font-family: var(--font-display);
+      background: #ffffff;
+      border: 3.5px solid #18181b;
+      border-radius: 12px;
+      box-shadow: 0 4px 0 rgba(24, 24, 27, 0.15);
+      letter-spacing: 0.01em;
+    }
+
+    /* Subtle Floating Autumn Leaves */
+    @keyframes floatLeaf {
+      0% { transform: translateY(-10px) translateX(0px) rotate(0deg); opacity: 0; }
+      15% { opacity: 0.65; }
+      50% { transform: translateY(140px) translateX(25px) rotate(140deg); }
+      85% { opacity: 0.55; }
+      100% { transform: translateY(320px) translateX(-15px) rotate(290deg); opacity: 0; }
+    }
+
+    .autumn-leaf {
+      position: absolute;
+      pointer-events: none;
+      z-index: 5;
+      animation: floatLeaf linear infinite;
+    }
+
+    /* Teacher Peek Glow on Secret Turkey Pumpkin */
+    .teacher-peek-highlight {
+      filter: drop-shadow(0 0 18px #22c55e) drop-shadow(0 0 8px #facc15) !important;
+      transform: scale(1.07) !important;
+    }
+
+    /* Side Vertical Ribbon Tag like reference */
+    .side-ribbon {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      background: #7e3af2;
+      color: #ffffff;
+      font-family: var(--font-display);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      border-radius: 0 8px 8px 0;
+      box-shadow: -2px 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Pumpkin Card & Interactive Animations */
+    .pumpkin-slot {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      aspect-ratio: 1.18 / 1;
+      min-height: 115px;
+    }
+
+    .pumpkin-btn {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      max-width: 245px;
+      max-height: 205px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.18s ease;
+      z-index: 10;
+    }
+
+    .pumpkin-btn:hover:not(.revealed) {
+      transform: scale(1.06) translateY(-3px);
+      filter: drop-shadow(0 10px 12px rgba(0, 0, 0, 0.24));
+    }
+
+    .pumpkin-btn:active:not(.revealed) {
+      transform: scale(0.96);
+    }
+
+    .pumpkin-word {
+      position: absolute;
+      top: 57%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: var(--font-display);
+      font-weight: 600;
+      color: #ffffff;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.45), 0 0 2px rgba(0, 0, 0, 0.35);
+      pointer-events: none;
+      white-space: nowrap;
+      line-height: 1;
+    }
+
+    .pumpkin-letter {
+      font-family: var(--font-primary-letter);
+      font-weight: 700;
+      top: 56%;
+    }
+
+    /* Wobble and Pop Out Animation when pumpkin is empty */
+    @keyframes pumpkinPopAway {
+      0% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+      }
+      25% {
+        transform: scale(1.1) rotate(-6deg);
+        opacity: 1;
+      }
+      50% {
+        transform: scale(1.12) rotate(6deg);
+        opacity: 0.95;
+      }
+      100% {
+        transform: scale(0.15) translateY(-25px) rotate(14deg);
+        opacity: 0;
+        pointer-events: none;
+      }
+    }
+
+    .pumpkin-pop-away {
+      animation: pumpkinPopAway 0.52s cubic-bezier(0.36, 0, 0.66, -0.56) forwards;
+      pointer-events: none;
+    }
+
+    /* Turkey Celebration Bounce */
+    @keyframes turkeyBounceIn {
+      0% {
+        transform: scale(0.2) translateY(30px);
+        opacity: 0;
+      }
+      55% {
+        transform: scale(1.15) translateY(-10px);
+        opacity: 1;
+      }
+      75% {
+        transform: scale(0.95) translateY(2px);
+      }
+      100% {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes turkeyWiggle {
+      0%, 100% { transform: rotate(-4deg) scale(1.03); }
+      50% { transform: rotate(4deg) scale(1.06); }
+    }
+
+    .turkey-reveal {
+      animation: turkeyBounceIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+                 turkeyWiggle 1.4s ease-in-out 0.6s infinite;
+    }
+
+    /* Empty patch subtle fade in */
+    @keyframes fadeInScale {
+      from { opacity: 0; transform: scale(0.7); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .empty-patch {
+      animation: fadeInScale 0.35s ease-out forwards;
+    }
+
+    /* Confetti Canvas */
+    #confetti-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 40;
+    }
+
+    /* Celebration Banner Pop */
+    @keyframes bannerSlideUp {
+      0% { opacity: 0; transform: translateY(24px) scale(0.92); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .celebration-card {
+      animation: bannerSlideUp 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    /* Custom Scrollbar for modal textarea */
+    textarea::-webkit-scrollbar {
+      width: 8px;
+    }
+    textarea::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 99px;
+    }
+  </style>
+</head>
+<body class="p-2 sm:p-4 md:p-5">
+
+  <!-- Smartboard Frame -->
+  <div class="smartboard-bezel">
+    <!-- Main Interactive Harvest Board -->
+    <main class="harvest-board px-3 py-3 sm:px-6 sm:py-4 md:px-10 md:py-5">
+      <div class="meadow-texture"></div>
+
+      <!-- Top SVG Distant Field Horizon & Trees -->
+      <svg class="absolute top-0 left-0 w-full h-28 pointer-events-none opacity-80" viewBox="0 0 1200 120" preserveAspectRatio="none">
+        <!-- Soft Golden Sky -->
+        <rect width="1200" height="72" fill="#fdf8e7" />
+        <!-- Distant Tree Line -->
+        <path d="M0,72 Q60,55 120,68 T250,65 T390,69 T540,62 T690,68 T850,60 T1020,66 T1200,63 L1200,76 L0,76 Z" fill="#7c8c5c" />
+        <!-- Horizon Field Strip -->
+        <rect y="74" width="1200" height="12" fill="#9aa86c" />
+      </svg>
+
+      <!-- Confetti Overlay -->
+      <canvas id="confetti-canvas"></canvas>
+
+      <!-- Top Classroom Prompt Banner -->
+      <header class="relative z-20 flex flex-col items-center justify-center mb-3 sm:mb-5">
+        <div class="header-banner px-4 py-2 sm:px-7 sm:py-2.5 max-w-5xl w-full flex flex-col sm:flex-row items-center justify-between gap-2">
+          <h1 class="text-lg sm:text-2xl md:text-[1.95rem] font-semibold text-zinc-900 leading-tight text-center sm:text-left">
+            Find the <span class="text-[#5c913b] font-bold">turkey</span> by clicking on the <span class="text-[#f27d16] font-bold">pumpkins</span>!
+          </h1>
+          <span id="deck-badge" class="inline-flex items-center gap-1.5 bg-amber-100 text-amber-950 border-2 border-amber-400 font-bold text-xs sm:text-sm px-3.5 py-1 rounded-full whitespace-nowrap shadow-xs">
+            <span>🍂</span>
+            <span id="deck-badge-text">CVC Words</span>
+          </span>
+        </div>
+      </header>
+
+      <!-- Subtle Floating Leaves Container -->
+      <div id="floating-leaves-layer" class="absolute inset-0 overflow-hidden pointer-events-none"></div>
+
+      <!-- 3x4 Pumpkin Grid -->
+      <section aria-label="Phonics Pumpkin Patch" class="relative z-20 mx-auto max-w-6xl">
+        <div id="pumpkin-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-4 md:gap-5 items-center justify-items-center py-1">
+          <!-- 12 Pumpkin Slots injected dynamically -->
+        </div>
+      </section>
+
+      <!-- Side Category Ribbon (matching classroom slide aesthetic) -->
+      <div id="category-ribbon" class="side-ribbon hidden lg:flex items-center justify-center px-2 py-4 text-sm fixed right-5 top-1/2 -translate-y-1/2 z-30" style="position: absolute; right: 0; top: 52%;">
+        CVC Words
+      </div>
+
+      <!-- Win Celebration Overlay Banner -->
+      <div id="win-banner" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-[2px]">
+        <div class="celebration-card bg-white border-4 border-zinc-900 rounded-3xl p-6 sm:p-8 max-w-lg w-full text-center shadow-2xl relative">
+          <!-- Turkey Badge SVG -->
+          <div id="win-turkey-art" class="w-32 h-32 sm:w-36 sm:h-36 mx-auto -mt-2 mb-2"></div>
+
+          <div class="inline-block bg-amber-100 text-amber-900 font-bold text-xs sm:text-sm uppercase tracking-wider px-3 py-1 rounded-full mb-2 border border-amber-300">
+            Gobble, Gobble! Great Reading!
+          </div>
+
+          <h2 id="win-message" class="text-2xl sm:text-3xl font-extrabold text-zinc-900 mb-2" style="font-family: var(--font-display);">
+            You found the turkey behind "<span class="text-orange-600">dug</span>"!
+          </h2>
+
+          <p id="win-subtext" class="text-zinc-600 text-base sm:text-lg font-semibold mb-6">
+            Found in 3 tries! Ready to hide the turkey again?
+          </p>
+
+          <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <button id="play-again-btn" class="w-full sm:w-auto px-7 py-3.5 bg-gradient-to-b from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold text-lg sm:text-xl rounded-2xl border-2 border-zinc-900 shadow-[0_4px_0_#18181b] active:translate-y-1 active:shadow-none transition-all cursor-pointer">
+              🦃 Play Again (New Round)
+            </button>
+            <button id="peek-board-btn" class="w-full sm:w-auto px-5 py-3.5 bg-amber-100 hover:bg-amber-200 text-zinc-900 font-bold text-base rounded-2xl border-2 border-zinc-900 shadow-[0_4px_0_#18181b] active:translate-y-1 active:shadow-none transition-all cursor-pointer">
+              See Board
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Smartboard Tray Detail -->
+    <div class="marker-tray" aria-hidden="true">
+      <span class="marker-pen bg-zinc-900 border border-zinc-600"></span>
+      <span class="marker-pen bg-red-600"></span>
+      <span class="marker-pen bg-blue-600"></span>
+      <span class="marker-pen bg-green-600"></span>
+    </div>
+  </div>
+
+  <!-- Unobtrusive Teacher Control Bar -->
+  <footer class="w-full max-w-[1320px] mt-5 px-2">
+    <div class="bg-slate-800/95 border border-slate-700 rounded-2xl p-3 sm:px-5 sm:py-3 shadow-xl flex flex-wrap items-center justify-between gap-3 text-white">
+      
+      <!-- Left: Phonics & Letter Deck Selector -->
+      <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+        <label for="word-list-select" class="text-xs sm:text-sm font-bold uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
+          <span>📚 Deck:</span>
+        </label>
+        <select id="word-list-select" class="bg-slate-900 text-white font-bold text-sm sm:text-base px-3.5 py-2 rounded-xl border border-slate-600 focus:outline-none focus:ring-2 focus:ring-amber-400 cursor-pointer">
+          <optgroup label="Alphabet & Letters">
+            <option value="uppercaseLetters">Uppercase Letters (A–Z)</option>
+            <option value="lowercaseLetters">Lowercase Letters (a–z)</option>
+            <option value="mixedLetters">Mixed Letters (Aa)</option>
+          </optgroup>
+          <optgroup label="Phonics & Words">
+            <option value="cvc" selected>CVC Words (Short Vowels)</option>
+            <option value="initialBlends">Initial Blends (CCVC)</option>
+            <option value="finalBlends">Final Blends (CVCC)</option>
+            <option value="mixed">Mixed CVC &amp; Blends</option>
+          </optgroup>
+          <optgroup label="Teacher Custom">
+            <option value="custom">Custom Letters / Words ✨</option>
+          </optgroup>
+        </select>
+
+        <button id="open-custom-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs sm:text-sm px-3.5 py-2 rounded-xl border border-indigo-400/40 shadow transition cursor-pointer">
+          ✏️ Custom List
+        </button>
+      </div>
+
+      <!-- Center: Round Status Counter -->
+      <div class="hidden xl:flex items-center gap-4 text-sm font-bold text-slate-300 bg-slate-900/70 px-4 py-1.5 rounded-xl border border-slate-700">
+        <span>Guesses: <strong id="guess-counter" class="text-amber-400 text-base">0</strong></span>
+        <span class="text-slate-600">|</span>
+        <span>Turkeys Found: <strong id="score-counter" class="text-green-400 text-base">0</strong></span>
+      </div>
+
+      <!-- Right: Peek, Shuffle, Sound & Speech Controls -->
+      <div class="flex flex-wrap items-center gap-2">
+        <button id="teacher-peek-btn" title="Hold down to quietly highlight where the turkey is hiding" class="bg-slate-700 hover:bg-slate-600 active:bg-emerald-700 text-emerald-300 font-bold text-xs sm:text-sm px-3 py-2 rounded-xl border border-slate-600 transition flex items-center gap-1 cursor-pointer">
+          <span>👀</span>
+          <span>Hold to Peek</span>
+        </button>
+
+        <button id="tts-toggle-btn" title="Toggle reading the letter or word aloud when clicked" class="bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold text-xs sm:text-sm px-3.5 py-2 rounded-xl border border-slate-600 transition flex items-center gap-1.5 cursor-pointer">
+          <span id="tts-icon">🤫</span>
+          <span id="tts-label">Read Aloud: OFF</span>
+        </button>
+
+        <button id="sound-toggle-btn" title="Mute or unmute game sound effects" class="bg-slate-700 hover:bg-slate-600 text-amber-300 font-bold text-xs sm:text-sm px-3.5 py-2 rounded-xl border border-slate-600 transition flex items-center gap-1.5 cursor-pointer">
+          <span id="sound-icon">🔊</span>
+          <span id="sound-label">Sound: ON</span>
+        </button>
+
+        <button id="shuffle-btn" class="bg-gradient-to-b from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-extrabold text-sm sm:text-base px-4 py-2 rounded-xl shadow-md border border-orange-300/40 active:scale-95 transition flex items-center gap-1.5 cursor-pointer">
+          <span>🔄</span>
+          <span>New Round / Shuffle</span>
+        </button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Custom Words/Letters Modal -->
+  <div id="custom-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+    <div class="bg-white border-4 border-zinc-900 rounded-3xl max-w-lg w-full p-6 shadow-2xl">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-2xl font-extrabold text-zinc-900" style="font-family: var(--font-display);">
+          ✏️ Custom Letters or Words
+        </h3>
+        <button id="close-modal-btn" class="w-9 h-9 rounded-full bg-zinc-100 hover:bg-zinc-200 text-zinc-800 font-bold text-lg flex items-center justify-center cursor-pointer">
+          ✕
+        </button>
+      </div>
+
+      <p class="text-zinc-600 text-sm sm:text-base mb-3">
+        Type or paste up to <strong>12 focus letters, digraphs, sight words, or phonics words</strong> separated by commas, spaces, or new lines. (If fewer than 12 are entered, we'll fill the rest automatically!)
+      </p>
+
+      <textarea id="custom-words-input" rows="5" class="w-full p-3.5 text-lg font-bold text-zinc-900 bg-amber-50/60 border-2 border-zinc-300 rounded-2xl focus:outline-none focus:border-orange-500" placeholder="b, d, p, q, m, s, t, a, sh, ch, th, wh"></textarea>
+
+      <div id="modal-feedback" class="text-sm font-bold text-rose-600 mt-1.5 min-h-[20px]"></div>
+
+      <div class="flex flex-wrap items-center justify-end gap-2.5 mt-4">
+        <button id="cancel-modal-btn" class="px-4 py-2.5 rounded-xl bg-zinc-200 hover:bg-zinc-300 text-zinc-800 font-bold text-sm cursor-pointer">
+          Cancel
+        </button>
+        <button id="save-custom-btn" class="px-6 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-extrabold text-base border-2 border-zinc-900 shadow-[0_3px_0_#18181b] active:translate-y-0.5 cursor-pointer">
+          Start Round with This List!
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * Find the Turkey! — Interactive Classroom Phonics & Alphabet Game
+     * Self-contained single-file HTML5 application with Web Audio API SFX,
+     * responsive SVG pumpkin & turkey art, confetti celebration, and teacher tools.
+     */
+
+    // ==========================================
+    // 1. WORD & LETTER BANKS
+    // ==========================================
+    const UPPERCASE_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+    const LOWERCASE_ALPHABET = "abcdefghijklmnopqrstuvwxyz".split("");
+
+    const WORD_BANKS = {
+      uppercaseLetters: UPPERCASE_ALPHABET,
+      lowercaseLetters: LOWERCASE_ALPHABET,
+      cvc: [
+        // Classic 12-word set first, followed by 60+ short-vowel CVC words
+        "dug", "fat", "wet", "lip", "ram", "win", "sip", "vet", "jet", "pop", "pen", "pug",
+        "cat", "sun", "map", "red", "pig", "hop", "cub", "web", "box", "fin", "mud", "top",
+        "hat", "bed", "sit", "dog", "rug", "van", "hen", "zip", "fox", "bus", "jam", "net",
+        "bat", "pan", "leg", "ten", "pin", "wig", "cot", "mop", "tub", "gum", "cap", "fan",
+        "men", "pet", "dig", "kid", "log", "pot", "bug", "hut", "sad", "tag", "gem", "jet",
+        "mix", "six", "sob", "nod", "run", "cut", "cup", "nut", "rag", "wag", "den", "lid"
+      ],
+      initialBlends: [
+        "frog", "stop", "clap", "drum", "swim", "sled", "crab", "tree", "flag", "plug", "skip", "twin",
+        "drip", "spot", "grin", "snap", "trip", "black", "clock", "glad", "step", "trap", "plum", "spin",
+        "brush", "truck", "smash", "grill", "fresh", "plant", "crust", "brick", "clam", "crib", "drop", "flap",
+        "flip", "from", "grab", "grim", "plan", "plop", "prop", "scan", "skin", "slam", "slap", "slip",
+        "slug", "snug", "snip", "spit", "star", "stem", "stun", "swam", "twig", "bred", "flat", "glow"
+      ],
+      finalBlends: [
+        "hand", "milk", "tent", "jump", "nest", "lamp", "desk", "pink", "fast", "gift", "pond", "belt",
+        "camp", "dusk", "lift", "best", "wind", "bump", "sink", "raft", "melt", "help", "mask", "ring",
+        "stomp", "crust", "plant", "chest", "drink", "stamp", "band", "bend", "sand", "land", "send", "pond",
+        "ant", "bent", "dent", "hunt", "lint", "mint", "pant", "rent", "sent", "went", "cast", "dust",
+        "fist", "gust", "just", "last", "list", "lost", "mist", "must", "rest", "rust", "test", "vest"
+      ],
+      custom: [
+        "b", "d", "p", "q", "m", "s",
+        "t", "a", "sh", "ch", "th", "wh"
+      ]
+    };
+
+    const CATEGORY_LABELS = {
+      uppercaseLetters: "Uppercase Letters",
+      lowercaseLetters: "Lowercase Letters",
+      mixedLetters: "Mixed Letters (Aa)",
+      cvc: "CVC Words",
+      initialBlends: "Initial Blends",
+      finalBlends: "Final Blends",
+      mixed: "CVC & Blends",
+      custom: "Custom List"
+    };
+
+    // ==========================================
+    // 2. GAME STATE
+    // ==========================================
+    const state = {
+      category: "cvc",
+      words: [],
+      turkeyIndex: 0,
+      revealed: new Array(12).fill(false),
+      foundTurkey: false,
+      guessesThisRound: 0,
+      turkeysFoundTotal: 0,
+      soundEnabled: true,
+      ttsEnabled: false,
+      isFirstLoad: true
+    };
+
+    // ==========================================
+    // 3. WEB AUDIO API SOUND EFFECTS (No External Files)
+    // ==========================================
+    let audioCtx = null;
+
+    function ensureAudioContext() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+          audioCtx = new AudioContextClass();
+        }
+      }
+      if (audioCtx && audioCtx.state === "suspended") {
+        audioCtx.resume();
+      }
+    }
+
+    // Gentle playful "boing / pop" sound when a pumpkin is empty
+    function playEmptyPopSound() {
+      if (!state.soundEnabled) return;
+      try {
+        ensureAudioContext();
+        if (!audioCtx) return;
+
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(240, now);
+        osc.frequency.exponentialRampToValueAtTime(520, now + 0.11);
+        osc.frequency.exponentialRampToValueAtTime(190, now + 0.24);
+
+        gain.gain.setValueAtTime(0.22, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.26);
+      } catch (e) {
+        // Ignore audio errors on restricted devices
+      }
+    }
+
+    // Celebratory cheerful chime + playful turkey "gobble" warble when found!
+    function playTurkeyFoundSound() {
+      if (!state.soundEnabled) return;
+      try {
+        ensureAudioContext();
+        if (!audioCtx) return;
+
+        const now = audioCtx.currentTime;
+
+        // 1. Bright major arpeggio fanfare
+        const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+        notes.forEach((freq, idx) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          const startTime = now + idx * 0.08;
+
+          osc.type = "triangle";
+          osc.frequency.setValueAtTime(freq, startTime);
+
+          gain.gain.setValueAtTime(0.001, startTime);
+          gain.gain.linearRampToValueAtTime(0.24, startTime + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.42);
+
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+
+          osc.start(startTime);
+          osc.stop(startTime + 0.45);
+        });
+
+        // 2. Playful synthesized "gobble-gobble" warble
+        const gobbleStart = now + 0.34;
+        const gobbleOsc = audioCtx.createOscillator();
+        const lfo = audioCtx.createOscillator();
+        const lfoGain = audioCtx.createGain();
+        const gobbleGain = audioCtx.createGain();
+
+        gobbleOsc.type = "sawtooth";
+        gobbleOsc.frequency.setValueAtTime(340, gobbleStart);
+        gobbleOsc.frequency.linearRampToValueAtTime(260, gobbleStart + 0.45);
+
+        lfo.type = "sine";
+        lfo.frequency.setValueAtTime(18, gobbleStart); // fast warble
+        lfoGain.gain.setValueAtTime(45, gobbleStart);
+
+        lfo.connect(lfoGain);
+        lfoGain.connect(gobbleOsc.frequency);
+
+        // Soft lowpass filter so the warble sounds warm and cartoon-like
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = "lowpass";
+        filter.frequency.setValueAtTime(950, gobbleStart);
+
+        gobbleGain.gain.setValueAtTime(0.001, gobbleStart);
+        gobbleGain.gain.linearRampToValueAtTime(0.16, gobbleStart + 0.04);
+        gobbleGain.gain.exponentialRampToValueAtTime(0.001, gobbleStart + 0.48);
+
+        gobbleOsc.connect(filter);
+        filter.connect(gobbleGain);
+        gobbleGain.connect(audioCtx.destination);
+
+        lfo.start(gobbleStart);
+        gobbleOsc.start(gobbleStart);
+        lfo.stop(gobbleStart + 0.5);
+        gobbleOsc.stop(gobbleStart + 0.5);
+      } catch (e) {
+        // Ignore audio errors
+      }
+    }
+
+    // Optional Text-to-Speech pronunciation helper (handles single letters cleanly)
+    function speakWord(item) {
+      if (!state.ttsEnabled || !("speechSynthesis" in window)) return;
+      try {
+        window.speechSynthesis.cancel();
+        // Speak single letters cleanly by lowercase name so TTS doesn't say "capital A"
+        const textToSpeak = item.length === 1 ? item.toLowerCase() : item;
+        const utterance = new SpeechSynthesisUtterance(textToSpeak);
+        utterance.rate = 0.85; // Clear, slightly slower classroom pace
+        utterance.pitch = 1.08;
+        window.speechSynthesis.speak(utterance);
+      } catch (e) {
+        // Ignore speech synthesis errors
+      }
+    }
+
+    // ==========================================
+    // 4. SVG ART GENERATORS (Hand-Drawn Classroom Style)
+    // ==========================================
+
+    // Hand-drawn style Pumpkin SVG matching the classroom reference image
+    function getPumpkinSVG() {
+      return `
+        <svg viewBox="0 0 240 205" class="w-full h-full overflow-visible drop-shadow-[0_5px_4px_rgba(0,0,0,0.22)]">
+          <!-- Curly Vine -->
+          <path d="M112,35 C95,24 85,36 96,42 C104,46 109,38 103,33" fill="none" stroke="#18181b" stroke-width="3.2" stroke-linecap="round"/>
+          
+          <!-- Brown Ribbed Stem -->
+          <path d="M107,46 L103,14 L132,12 L126,46 Z" fill="#7c4722" stroke="#18181b" stroke-width="3.8" stroke-linejoin="round"/>
+          <path d="M106,23 L129,21 M106,33 L127,31" stroke="#18181b" stroke-width="2.5" stroke-linecap="round"/>
+
+          <!-- Green Leaf on Right of Stem -->
+          <path d="M124,42 C132,26 146,35 154,28 C164,20 174,31 167,44 C161,56 145,58 134,53 C128,50 124,46 124,42 Z" fill="#6cc417" stroke="#18181b" stroke-width="3.8" stroke-linejoin="round"/>
+          <path d="M129,43 Q145,42 158,36" fill="none" stroke="#3b7a08" stroke-width="2.5" stroke-linecap="round"/>
+
+          <!-- Outer Left & Right Pumpkin Lobes -->
+          <path d="M72,46 C26,48 14,104 22,146 C29,182 64,193 90,185" fill="#f78114" stroke="#18181b" stroke-width="4.2" stroke-linecap="round"/>
+          <path d="M168,46 C214,48 226,104 218,146 C211,182 176,193 150,185" fill="#f78114" stroke="#18181b" stroke-width="4.2" stroke-linecap="round"/>
+
+          <!-- Inner Left & Right Lobes -->
+          <path d="M96,43 C54,43 44,102 52,148 C58,182 82,192 104,187" fill="#fa8919" stroke="#18181b" stroke-width="3.2" stroke-linecap="round"/>
+          <path d="M144,43 C186,43 196,102 188,148 C182,182 158,192 136,187" fill="#fa8919" stroke="#18181b" stroke-width="3.2" stroke-linecap="round"/>
+
+          <!-- Center Main Pumpkin Body -->
+          <ellipse cx="120" cy="116" rx="44" ry="74" fill="#ff921e" stroke="#18181b" stroke-width="3.5"/>
+
+          <!-- Bottom Scallop Outline Reinforcement -->
+          <path d="M22,146 C29,182 64,193 88,185 C104,192 136,192 152,185 C176,193 211,182 218,146" fill="none" stroke="#18181b" stroke-width="4.2" stroke-linecap="round"/>
+
+          <!-- Subtle Cartoon Highlight & Seeds/Speckles -->
+          <path d="M46,72 Q36,96 38,122" fill="none" stroke="#ffb85c" stroke-width="4" stroke-linecap="round" opacity="0.75"/>
+          <circle cx="38" cy="166" r="2.2" fill="#18181b"/>
+          <circle cx="48" cy="173" r="1.8" fill="#18181b"/>
+          <circle cx="198" cy="168" r="2.2" fill="#18181b"/>
+          <circle cx="188" cy="175" r="1.8" fill="#18181b"/>
+        </svg>
+      `;
+    }
+
+    // Adorable Cartoon Turkey SVG
+    function getTurkeySVG() {
+      return `
+        <svg viewBox="0 0 220 200" class="w-full h-full overflow-visible drop-shadow-[0_8px_10px_rgba(0,0,0,0.3)]">
+          <!-- Tail Feathers Fan -->
+          <g stroke="#18181b" stroke-width="3.5" stroke-linejoin="round">
+            <ellipse cx="52" cy="108" rx="34" ry="18" transform="rotate(-38 52 108)" fill="#e63946"/>
+            <ellipse cx="68" cy="72" rx="36" ry="18" transform="rotate(-18 68 72)" fill="#f77f00"/>
+            <ellipse cx="110" cy="56" rx="19" ry="38" fill="#fcbf49"/>
+            <ellipse cx="152" cy="72" rx="36" ry="18" transform="rotate(18 152 72)" fill="#f77f00"/>
+            <ellipse cx="168" cy="108" rx="34" ry="18" transform="rotate(38 168 108)" fill="#e63946"/>
+          </g>
+
+          <!-- Feet -->
+          <path d="M92,164 L86,184 M86,184 L75,188 M86,184 L86,191 M86,184 L97,188" stroke="#f59e0b" stroke-width="4.5" stroke-linecap="round"/>
+          <path d="M128,164 L134,184 M134,184 L123,188 M134,184 L134,191 M134,184 L145,188" stroke="#f59e0b" stroke-width="4.5" stroke-linecap="round"/>
+
+          <!-- Plump Brown Body -->
+          <ellipse cx="110" cy="132" rx="44" ry="38" fill="#7f4f24" stroke="#18181b" stroke-width="4"/>
+          <!-- Belly Patch -->
+          <ellipse cx="110" cy="138" rx="28" ry="23" fill="#a47148"/>
+
+          <!-- Little Wings -->
+          <path d="M68,122 C54,126 54,148 72,150" fill="#6f3f19" stroke="#18181b" stroke-width="3.5" stroke-linecap="round"/>
+          <path d="M152,122 C166,126 166,148 148,150" fill="#6f3f19" stroke="#18181b" stroke-width="3.5" stroke-linecap="round"/>
+
+          <!-- Turkey Head -->
+          <circle cx="110" cy="88" r="27" fill="#8b5a2b" stroke="#18181b" stroke-width="4"/>
+
+          <!-- Cute Eyes -->
+          <circle cx="100" cy="83" r="6.5" fill="#ffffff" stroke="#18181b" stroke-width="2.5"/>
+          <circle cx="120" cy="83" r="6.5" fill="#ffffff" stroke="#18181b" stroke-width="2.5"/>
+          <circle cx="101.5" cy="83" r="3.2" fill="#18181b"/>
+          <circle cx="121.5" cy="83" r="3.2" fill="#18181b"/>
+          <circle cx="102.5" cy="81.5" r="1.2" fill="#ffffff"/>
+          <circle cx="122.5" cy="81.5" r="1.2" fill="#ffffff"/>
+
+          <!-- Red Snood / Wattle -->
+          <path d="M114,94 C124,96 126,112 119,115 C113,117 111,106 112,99" fill="#ef233c" stroke="#18181b" stroke-width="2.8" stroke-linecap="round"/>
+
+          <!-- Yellow Beak -->
+          <polygon points="102,92 118,92 110,105" fill="#ffb703" stroke="#18181b" stroke-width="3" stroke-linejoin="round"/>
+
+          <!-- Happy Rosy Cheeks -->
+          <ellipse cx="90" cy="92" rx="4.5" ry="2.8" fill="#f4978e" opacity="0.8"/>
+          <ellipse cx="130" cy="92" rx="4.5" ry="2.8" fill="#f4978e" opacity="0.8"/>
+        </svg>
+      `;
+    }
+
+    // Empty Meadow Patch SVG shown after a non-turkey pumpkin pops away
+    function getEmptyPatchSVG(word) {
+      return `
+        <div class="empty-patch flex flex-col items-center justify-center text-center p-2">
+          <svg viewBox="0 0 140 80" class="w-24 sm:w-28 h-14 sm:h-16 overflow-visible">
+            <!-- Soft soil & grass blades -->
+            <ellipse cx="70" cy="58" rx="46" ry="12" fill="rgba(92, 64, 32, 0.22)" />
+            <path d="M42,58 Q36,38 28,42 M48,58 Q48,34 45,36 M54,58 Q60,38 66,42" fill="none" stroke="#4d7c0f" stroke-width="3.5" stroke-linecap="round"/>
+            <path d="M88,58 Q84,40 78,43 M94,58 Q96,35 95,37 M100,58 Q106,40 112,43" fill="none" stroke="#65a30d" stroke-width="3.5" stroke-linecap="round"/>
+            <!-- Small fallen autumn leaf -->
+            <path d="M64,54 C68,46 78,46 82,53 C76,59 68,59 64,54 Z" fill="#d97706" stroke="#78350f" stroke-width="2"/>
+          </svg>
+          <span class="text-xs sm:text-sm font-extrabold text-amber-950/75 bg-white/65 px-2.5 py-0.5 rounded-full border border-amber-900/20">
+            ${word}
+          </span>
+        </div>
+      `;
+    }
+
+    // ==========================================
+    // 5. CONFETTI CELEBRATION ANIMATION
+    // ==========================================
+    let confettiParticles = [];
+    let confettiAnimId = null;
+
+    function launchConfetti() {
+      const canvas = document.getElementById("confetti-canvas");
+      if (!canvas) return;
+      const rect = canvas.parentElement.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+
+      const ctx = canvas.getContext("2d");
+      const colors = ["#f97316", "#eab308", "#22c55e", "#ef4444", "#3b82f6", "#a855f7"];
+
+      confettiParticles = Array.from({ length: 95 }, () => ({
+        x: canvas.width * (0.2 + Math.random() * 0.6),
+        y: canvas.height * 0.45,
+        vx: (Math.random() - 0.5) * 14,
+        vy: -Math.random() * 13 - 4,
+        size: Math.random() * 9 + 5,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        rotation: Math.random() * 360,
+        vRot: (Math.random() - 0.5) * 12,
+        gravity: 0.35
+      }));
+
+      if (confettiAnimId) cancelAnimationFrame(confettiAnimId);
+
+      function step() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let active = 0;
+
+        confettiParticles.forEach((p) => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += p.gravity;
+          p.rotation += p.vRot;
+
+          if (p.y < canvas.height + 30) {
+            active++;
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate((p.rotation * Math.PI) / 180);
+            ctx.fillStyle = p.color;
+            ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.65);
+            ctx.restore();
+          }
+        });
+
+        if (active > 0) {
+          confettiAnimId = requestAnimationFrame(step);
+        } else {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+      }
+
+      step();
+    }
+
+    // ==========================================
+    // 6. ROUND SETUP & GAMEPLAY LOGIC
+    // ==========================================
+    function shuffleArray(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function getTwelveItemsForCategory(category) {
+      if (category === "cvc" && state.isFirstLoad) {
+        // Start with the exact 12 classic CVC words from the reference board on initial load
+        state.isFirstLoad = false;
+        return WORD_BANKS.cvc.slice(0, 12);
+      }
+
+      if (category === "uppercaseLetters") {
+        return shuffleArray(UPPERCASE_ALPHABET).slice(0, 12);
+      }
+
+      if (category === "lowercaseLetters") {
+        return shuffleArray(LOWERCASE_ALPHABET).slice(0, 12);
+      }
+
+      if (category === "mixedLetters") {
+        // Pick 12 distinct alphabet letters and randomly make half uppercase and half lowercase
+        const chosenLetters = shuffleArray(UPPERCASE_ALPHABET).slice(0, 12);
+        const caseFlags = shuffleArray([
+          true, true, true, true, true, true,
+          false, false, false, false, false, false
+        ]);
+        return chosenLetters.map((letter, idx) =>
+          caseFlags[idx] ? letter.toUpperCase() : letter.toLowerCase()
+        );
+      }
+
+      if (category === "mixed") {
+        const pool = [
+          ...WORD_BANKS.cvc,
+          ...WORD_BANKS.initialBlends,
+          ...WORD_BANKS.finalBlends
+        ];
+        return shuffleArray(Array.from(new Set(pool))).slice(0, 12);
+      }
+
+      if (category === "custom") {
+        let customPool = [...WORD_BANKS.custom];
+        // Pad with CVC words or letters if teacher entered fewer than 12 items
+        if (customPool.length < 12) {
+          const isSingleLetterList = customPool.every((item) => item.length === 1);
+          const fillerSource = isSingleLetterList ? LOWERCASE_ALPHABET : WORD_BANKS.cvc;
+          const filler = shuffleArray(fillerSource).filter((w) => !customPool.includes(w));
+          customPool = [...customPool, ...filler.slice(0, 12 - customPool.length)];
+        }
+        return shuffleArray(customPool).slice(0, 12);
+      }
+
+      const bank = WORD_BANKS[category] || WORD_BANKS.cvc;
+      return shuffleArray(Array.from(new Set(bank))).slice(0, 12);
+    }
+
+    function startNewRound() {
+      state.words = getTwelveItemsForCategory(state.category);
+      state.turkeyIndex = Math.floor(Math.random() * 12);
+      state.revealed = new Array(12).fill(false);
+      state.foundTurkey = false;
+      state.guessesThisRound = 0;
+
+      // Update UI counters, badge, and side ribbon
+      const label = CATEGORY_LABELS[state.category] || "Phonics";
+      document.getElementById("guess-counter").textContent = "0";
+      document.getElementById("category-ribbon").textContent = label;
+      document.getElementById("deck-badge-text").textContent = label;
+      document.getElementById("win-banner").classList.add("hidden");
+
+      renderGrid();
+    }
+
+    function getFontSizeClass(item) {
+      if (item.length === 1) return "pumpkin-letter text-5xl sm:text-6xl md:text-[4.1rem]";
+      if (item.length === 2) return "pumpkin-letter text-4xl sm:text-5xl md:text-[3.3rem]";
+      if (item.length <= 3) return "text-3xl sm:text-4xl md:text-[2.65rem]";
+      if (item.length <= 5) return "text-2xl sm:text-3xl md:text-[2.2rem]";
+      return "text-xl sm:text-2xl md:text-[1.75rem]";
+    }
+
+    function renderGrid() {
+      const grid = document.getElementById("pumpkin-grid");
+      grid.innerHTML = "";
+
+      state.words.forEach((item, index) => {
+        const slot = document.createElement("div");
+        slot.className = "pumpkin-slot w-full";
+        slot.id = `slot-${index}`;
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "pumpkin-btn";
+        const ariaType = item.length === 1 ? `letter ${item}` : `word ${item}`;
+        btn.setAttribute("aria-label", `Pumpkin with ${ariaType}`);
+        btn.innerHTML = `
+          ${getPumpkinSVG()}
+          <span class="pumpkin-word ${getFontSizeClass(item)}">${item}</span>
+        `;
+
+        btn.addEventListener("click", () => handlePumpkinClick(index));
+        slot.appendChild(btn);
+        grid.appendChild(slot);
+      });
+    }
+
+    // Handles clicking/tapping on any pumpkin in the grid
+    function handlePumpkinClick(index) {
+      if (state.revealed[index] || state.foundTurkey) return;
+
+      state.revealed[index] = true;
+      state.guessesThisRound += 1;
+      document.getElementById("guess-counter").textContent = String(state.guessesThisRound);
+
+      const item = state.words[index];
+      const slot = document.getElementById(`slot-${index}`);
+      const btn = slot ? slot.querySelector(".pumpkin-btn") : null;
+
+      speakWord(item);
+
+      if (index === state.turkeyIndex) {
+        // Found the hidden turkey!
+        state.foundTurkey = true;
+        state.turkeysFoundTotal += 1;
+        document.getElementById("score-counter").textContent = String(state.turkeysFoundTotal);
+
+        playTurkeyFoundSound();
+        launchConfetti();
+
+        if (slot) {
+          slot.innerHTML = `
+            <div class="turkey-reveal w-full h-full max-w-[230px] max-h-[195px] flex items-center justify-center">
+              ${getTurkeySVG()}
+            </div>
+          `;
+        }
+
+        setTimeout(() => {
+          showWinBanner(item);
+        }, 650);
+      } else {
+        // Empty pumpkin — animate away and show grassy patch
+        playEmptyPopSound();
+        if (btn) {
+          btn.classList.add("revealed", "pumpkin-pop-away");
+          setTimeout(() => {
+            if (slot) {
+              slot.innerHTML = getEmptyPatchSVG(item);
+            }
+          }, 480);
+        }
+      }
+    }
+
+    // Subtle floating autumn leaves generator
+    function initFloatingLeaves() {
+      const container = document.getElementById("floating-leaves-layer");
+      if (!container) return;
+      const leafColors = ["#e76f51", "#f4a261", "#e9c46a", "#d97706"];
+
+      for (let i = 0; i < 7; i++) {
+        const leaf = document.createElement("div");
+        leaf.className = "autumn-leaf";
+        const leftPct = 6 + i * 14 + Math.random() * 6;
+        const duration = 11 + Math.random() * 8;
+        const delay = -(Math.random() * 14);
+        const color = leafColors[i % leafColors.length];
+
+        leaf.style.left = `${leftPct}%`;
+        leaf.style.top = "-20px";
+        leaf.style.animationDuration = `${duration}s`;
+        leaf.style.animationDelay = `${delay}s`;
+
+        leaf.innerHTML = `
+          <svg width="24" height="24" viewBox="0 0 24 24">
+            <path d="M12,2 C18,6 21,13 15,19 C11,22 6,20 4,15 C3,9 7,5 12,2 Z" fill="${color}" stroke="#78350f" stroke-width="1.5"/>
+            <path d="M12,3 L11,21" stroke="#78350f" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+        `;
+        container.appendChild(leaf);
+      }
+    }
+
+    function showWinBanner(winningWord) {
+      const winBanner = document.getElementById("win-banner");
+      const winTurkeyArt = document.getElementById("win-turkey-art");
+      const winMessage = document.getElementById("win-message");
+      const winSubtext = document.getElementById("win-subtext");
+
+      winTurkeyArt.innerHTML = getTurkeySVG();
+      winMessage.innerHTML = `You found the turkey behind "<span class="text-orange-600">${winningWord}</span>"!`;
+
+      const tryLabel = state.guessesThisRound === 1 ? "1st try! Lucky guess!" : `${state.guessesThisRound} tries!`;
+      winSubtext.textContent = `Found in ${tryLabel} Ready for the next round?`;
+
+      winBanner.classList.remove("hidden");
+    }
+
+    // ==========================================
+    // 7. TEACHER CONTROLS & EVENT LISTENERS
+    // ==========================================
+    function setupControls() {
+      const wordListSelect = document.getElementById("word-list-select");
+      const shuffleBtn = document.getElementById("shuffle-btn");
+      const playAgainBtn = document.getElementById("play-again-btn");
+      const peekBoardBtn = document.getElementById("peek-board-btn");
+      const soundToggleBtn = document.getElementById("sound-toggle-btn");
+      const ttsToggleBtn = document.getElementById("tts-toggle-btn");
+      const teacherPeekBtn = document.getElementById("teacher-peek-btn");
+
+      // Hold-to-Peek for Teachers (quietly glows the turkey's pumpkin while held)
+      function startPeek() {
+        if (state.foundTurkey) return;
+        const slot = document.getElementById(`slot-${state.turkeyIndex}`);
+        const btn = slot ? slot.querySelector(".pumpkin-btn") : null;
+        if (btn) btn.classList.add("teacher-peek-highlight");
+      }
+
+      function endPeek() {
+        document.querySelectorAll(".teacher-peek-highlight").forEach((el) => {
+          el.classList.remove("teacher-peek-highlight");
+        });
+      }
+
+      teacherPeekBtn.addEventListener("mousedown", startPeek);
+      teacherPeekBtn.addEventListener("touchstart", (e) => {
+        e.preventDefault();
+        startPeek();
+      });
+      window.addEventListener("mouseup", endPeek);
+      window.addEventListener("touchend", endPeek);
+
+      // Custom Modal Elements
+      const openCustomBtn = document.getElementById("open-custom-btn");
+      const customModal = document.getElementById("custom-modal");
+      const closeModalBtn = document.getElementById("close-modal-btn");
+      const cancelModalBtn = document.getElementById("cancel-modal-btn");
+      const saveCustomBtn = document.getElementById("save-custom-btn");
+      const customInput = document.getElementById("custom-words-input");
+      const modalFeedback = document.getElementById("modal-feedback");
+
+      wordListSelect.addEventListener("change", (e) => {
+        state.category = e.target.value;
+        if (state.category === "custom") {
+          openCustomWordsModal();
+        } else {
+          startNewRound();
+        }
+      });
+
+      shuffleBtn.addEventListener("click", () => {
+        startNewRound();
+      });
+
+      playAgainBtn.addEventListener("click", () => {
+        startNewRound();
+      });
+
+      peekBoardBtn.addEventListener("click", () => {
+        document.getElementById("win-banner").classList.add("hidden");
+      });
+
+      // Sound Toggle
+      soundToggleBtn.addEventListener("click", () => {
+        state.soundEnabled = !state.soundEnabled;
+        document.getElementById("sound-icon").textContent = state.soundEnabled ? "🔊" : "🔇";
+        document.getElementById("sound-label").textContent = state.soundEnabled ? "Sound: ON" : "Sound: OFF";
+        soundToggleBtn.classList.toggle("text-amber-300", state.soundEnabled);
+        soundToggleBtn.classList.toggle("text-slate-400", !state.soundEnabled);
+        if (state.soundEnabled) {
+          ensureAudioContext();
+          playEmptyPopSound();
+        }
+      });
+
+      // Text-to-Speech Toggle
+      ttsToggleBtn.addEventListener("click", () => {
+        state.ttsEnabled = !state.ttsEnabled;
+        document.getElementById("tts-icon").textContent = state.ttsEnabled ? "🗣️" : "🤫";
+        document.getElementById("tts-label").textContent = state.ttsEnabled ? "Read Word: ON" : "Read Word: OFF";
+        ttsToggleBtn.classList.toggle("bg-emerald-700", state.ttsEnabled);
+        ttsToggleBtn.classList.toggle("border-emerald-400", state.ttsEnabled);
+        ttsToggleBtn.classList.toggle("text-white", state.ttsEnabled);
+      });
+
+      // Custom Words Modal Handlers
+      function openCustomWordsModal() {
+        customInput.value = WORD_BANKS.custom.join(", ");
+        modalFeedback.textContent = "";
+        customModal.classList.remove("hidden");
+        customInput.focus();
+      }
+
+      function closeCustomWordsModal() {
+        customModal.classList.add("hidden");
+      }
+
+      openCustomBtn.addEventListener("click", openCustomWordsModal);
+      closeModalBtn.addEventListener("click", closeCustomWordsModal);
+      cancelModalBtn.addEventListener("click", closeCustomWordsModal);
+
+      saveCustomBtn.addEventListener("click", () => {
+        const raw = customInput.value;
+        const parsed = raw
+          .split(/[\s,\n]+/)
+          .map((w) => w.trim())
+          .filter((w) => w.length > 0 && w.length <= 14);
+
+        if (parsed.length === 0) {
+          modalFeedback.textContent = "Please enter at least 1 letter or word to start a custom round.";
+          return;
+        }
+
+        WORD_BANKS.custom = Array.from(new Set(parsed)).slice(0, 24);
+        state.category = "custom";
+        wordListSelect.value = "custom";
+        closeCustomWordsModal();
+        startNewRound();
+      });
+    }
+
+    // Initialize game when DOM is ready
+    window.addEventListener("DOMContentLoaded", () => {
+      initFloatingLeaves();
+      setupControls();
+      startNewRound();
+    });
+  </script>
+</body>
+</html>
